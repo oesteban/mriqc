@@ -11,8 +11,8 @@ machine:
   post:
     # Cache docker installation
     - sudo service docker stop
-    - mkdir -p ~/.cache/docker && sudo umount /var/lib/docker/btrfs; sudo rm -rf /var/lib/docker && sudo setfacl -d -m group:ubuntu:rwx ~/.cache/docker && sudo setfacl -m group:ubuntu:rwx ~/.cache/docker
-    - sudo ln -s ~/.cache/docker /var/lib/docker
+    - mkdir -p ~/.cache/docker && chgrp docker ~/.cache/docker && sudo setfacl -d -m group:docker:rwx ~/.cache/docker && sudo setfacl -m group:docker:rwx ~/.cache/docker
+    - sudo umount /var/lib/docker/btrfs; sudo rm -rf /var/lib/docker && sudo ln -s ~/.cache/docker /var/lib/docker
     - docker info >/dev/null 2>&1 || sudo service docker start
 
 dependencies:
