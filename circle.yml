@@ -2,18 +2,16 @@ machine:
   pre:
     - sudo curl -L -o /usr/bin/docker 'https://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.1-circleci'
     - sudo chmod 0755 /usr/bin/docker
-    # Cache docker installation
-    - mkdir -p ~/.cache/docker && sudo umount /var/lib/docker/btrfs; sudo rm -rf /var/lib/docker && sudo ln -s ~/.cache/docker /var/lib/docker
   environment:
     SCRATCH: "$HOME/scratch"
     TEST_DATA_NAME: "circle-tests"
     TEST_DATA_URL: "https://files.osf.io/v1/resources/fvuh8/providers/osfstorage/589241339ad5a101fad8c474"
   services:
     - docker
-
-  override:
-    - sudo service docker stop
   post:
+    # Cache docker installation
+    - sudo service docker stop
+    - mkdir -p ~/.cache/docker && sudo umount /var/lib/docker/btrfs; sudo rm -rf /var/lib/docker && sudo ln -s ~/.cache/docker /var/lib/docker
     - docker info >/dev/null 2>&1 || service docker start
 
 dependencies:
