@@ -9,7 +9,7 @@ machine:
   services:
     - docker
   post:
-    # Cache docker installation
+    # Cache docker installation - must be done after cache has been deployed
     - sudo service docker stop
     - sudo mkdir -p ~/.docker/var && sudo chmod 711 ~/.docker/var
     - sudo rm -rf /var/lib/docker && sudo ln -s ~/.docker/var /var/lib/docker
