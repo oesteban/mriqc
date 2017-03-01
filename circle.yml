@@ -1,4 +1,7 @@
 machine:
+  pre:
+    - sudo curl -L -o /usr/bin/docker 'https://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.1-circleci'
+    - sudo chmod 0755 /usr/bin/docker
   environment:
     SCRATCH: "$HOME/scratch"
     TEST_DATA_NAME: "circle-tests"
@@ -8,29 +11,29 @@ machine:
 
 dependencies:
   cache_directories:
-    - "~/docker"
+    - "~/.cache/docker"
     - "~/data"
 
   pre:
-    # Download test data
-    - mkdir -p ~/data/ ~/docker
+    - mkdir -p ~/data
+    # Cache docker installation
+    - mkdir -p ~/.cache/docker && sudo rm -rf /var/lib/docker && sudo ln -s ~/.cache/docker /var/lib/docker
     # Create scratch folder and force group permissions
     - mkdir -p $SCRATCH && sudo setfacl -d -m group:ubuntu:rwx $SCRATCH && sudo setfacl -m group:ubuntu:rwx $SCRATCH
     - if [[ ! -d ~/data/${TEST_DATA_NAME} ]]; then wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0 -q -O ${TEST_DATA_NAME}.tar.gz "${TEST_DATA_URL}" && tar xzf ${TEST_DATA_NAME}.tar.gz -C ~/data/; fi
   override:
-    - if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; fi
-    - for i in $(seq 1 5); do docker build -f docker/Dockerfile_py35 -t mriqc:py35 . && break || sleep 15; done
-    - docker save mriqc:py35 > ~/docker/image.tar
+    - docker images
+    - for i in $(seq 1 5); do docker build -f docker/Dockerfile_py35 -t poldracklab/mriqc:latest . && break || sleep 15; done
 
 test:
   override:
     # Test mriqcp
-    - docker run -i -v /etc/localtime:/etc/localtime:ro -v ${CIRCLE_TEST_REPORTS}:/scratch -w /root/src/mriqc --entrypoint="/usr/bin/run_tests" mriqc:py35 :
+    - docker run -i -v /etc/localtime:/etc/localtime:ro -v ${CIRCLE_TEST_REPORTS}:/scratch -w /root/src/mriqc --entrypoint="/usr/bin/run_tests" poldracklab/mriqc:latest :
         timeout: 2600
-    - docker run -i -v /etc/localtime:/etc/localtime:ro -v ~/data:/data:ro -v $SCRATCH:/scratch -w /scratch mriqc:py35 /data/${TEST_DATA_NAME} out/ participant --testing --verbose-reports :
+    - docker run -i -v /etc/localtime:/etc/localtime:ro -v ~/data:/data:ro -v $SCRATCH:/scratch -w /scratch poldracklab/mriqc:latest /data/${TEST_DATA_NAME} out/ participant --testing --verbose-reports :
         timeout: 3200
-    - docker run -i -v /etc/localtime:/etc/localtime:ro -v ~/data:/data:ro -v $SCRATCH/func:/scratch -w /scratch mriqc:py35 out/derivatives out/ group -d func
-    - docker run -i -v /etc/localtime:/etc/localtime:ro -v ~/data:/data:ro -v $SCRATCH/anat:/scratch -w /scratch mriqc:py35 out/derivatives out/ group -d anat
+    - docker run -i -v /etc/localtime:/etc/localtime:ro -v ~/data:/data:ro -v $SCRATCH/func:/scratch -w /scratch poldracklab/mriqc:latest out/derivatives out/ group -d func
+    - docker run -i -v /etc/localtime:/etc/localtime:ro -v ~/data:/data:ro -v $SCRATCH/anat:/scratch -w /scratch poldracklab/mriqc:latest out/derivatives out/ group -d anat
     - diffval=1; diffval=$( cd $SCRATCH && find out/ | sort > outputs.txt && diff $HOME/mriqc/tests/circle_outputs.txt outputs.txt | wc -l ); exit $diffval
 general:
   artifacts:
