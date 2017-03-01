@@ -57,5 +57,18 @@ WORKDIR /root/src/mriqc
 RUN pip install -e .[all]
 
 WORKDIR /scratch
+
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+LABEL org.label-schema.build-date=$BUILD_DATE \
+      org.label-schema.name="MRIQC" \
+      org.label-schema.description="MRIQC - Structural and functional MRI Quality Control" \
+      org.label-schema.url="http://mriqc.readthedocs.io" \
+      org.label-schema.vcs-ref=$VCS_REF \
+      org.label-schema.vcs-url="https://github.com/poldracklab/mriqc" \
+      org.label-schema.version=$VERSION \
+      org.label-schema.schema-version="1.0"
+
 ENTRYPOINT ["/usr/bin/run_mriqc"]
 CMD ["--help"]
