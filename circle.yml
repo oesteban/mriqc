@@ -10,14 +10,15 @@ machine:
     - docker
   post:
     # Cache docker installation
+    - sudo mount | grep docker
     - sudo service docker stop
-    - mkdir -p ~/.cache/docker && chgrp docker ~/.cache/docker && sudo setfacl -d -m group:docker:rwx ~/.cache/docker && sudo setfacl -m group:docker:rwx ~/.cache/docker
-    - sudo umount /var/lib/docker/btrfs; sudo rm -rf /var/lib/docker && sudo ln -s ~/.cache/docker /var/lib/docker
+    - sudo mkdir -p ~/.docker/var && sudo chmod 711 ~/.docker/var
+    - sudo umount /var/lib/docker/btrfs; sudo rm -rf /var/lib/docker && sudo ln -s ~/.docker/var /var/lib/docker
     - docker info >/dev/null 2>&1 || sudo service docker start
 
 dependencies:
   cache_directories:
-    - "~/.cache/docker"
+    - "~/.docker/var"
     - "~/data"
 
   pre:
