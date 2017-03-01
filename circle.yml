@@ -27,8 +27,8 @@ dependencies:
     - if [[ ! -d ~/data/${TEST_DATA_NAME} ]]; then wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0 -q -O ${TEST_DATA_NAME}.tar.gz "${TEST_DATA_URL}" && tar xzf ${TEST_DATA_NAME}.tar.gz -C ~/data/; fi
   override:
     - docker images
-    - sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'$CIRCLE_TAG'/" nipype/info.py
-    - e=1 && for i in {1..5}; do docker build --rm=false -f docker/Dockerfile_py35 -t poldracklab/mriqc:latest -t nipype/nipype:latest --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` --build-arg VCS_REF=`git rev-parse --short HEAD` --build-arg VERSION=$CIRCLE_TAG . && e=0 && break || sleep 15; done && [ "$e" -eq "0" ] :
+    - sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'$CIRCLE_TAG'/" mriqc/info.py
+    - e=1 && for i in {1..5}; do docker build --rm=false -f docker/Dockerfile_py35 -t poldracklab/mriqc:latest --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` --build-arg VCS_REF=`git rev-parse --short HEAD` --build-arg VERSION=$CIRCLE_TAG . && e=0 && break || sleep 15; done && [ "$e" -eq "0" ] :
         timeout: 21600
     - docker images
 
