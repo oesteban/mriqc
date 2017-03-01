@@ -12,7 +12,7 @@ machine:
     # Cache docker installation
     - sudo service docker stop
     - sudo mkdir -p ~/.docker/var && sudo chmod 711 ~/.docker/var
-    - sudo umount /var/lib/docker/btrfs; sudo rm -rf /var/lib/docker && sudo ln -s ~/.docker/var /var/lib/docker
+    - sudo rm -rf /var/lib/docker && sudo ln -s ~/.docker/var /var/lib/docker
     - docker info >/dev/null 2>&1 || sudo service docker start
 
 dependencies:
