@@ -2,6 +2,10 @@ machine:
   pre:
     - sudo curl -L -o /usr/bin/docker 'https://s3-external-1.amazonaws.com/circle-downloads/docker-1.9.1-circleci'
     - sudo chmod 0755 /usr/bin/docker
+    # Cache docker installation
+    - sudo service docker stop
+    - mkdir -p ~/.cache/docker && sudo umount /var/lib/docker/btrfs; sudo rm -rf /var/lib/docker && sudo ln -s ~/.cache/docker /var/lib/docker
+    - sudo service docker start
   environment:
     SCRATCH: "$HOME/scratch"
     TEST_DATA_NAME: "circle-tests"
@@ -16,8 +20,6 @@ dependencies:
 
   pre:
     - mkdir -p ~/data
-    # Cache docker installation
-    - mkdir -p ~/.cache/docker && sudo rm -rf /var/lib/docker && sudo ln -s ~/.cache/docker /var/lib/docker
     # Create scratch folder and force group permissions
     - mkdir -p $SCRATCH && sudo setfacl -d -m group:ubuntu:rwx $SCRATCH && sudo setfacl -m group:ubuntu:rwx $SCRATCH
     - if [[ ! -d ~/data/${TEST_DATA_NAME} ]]; then wget --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 0 -q -O ${TEST_DATA_NAME}.tar.gz "${TEST_DATA_URL}" && tar xzf ${TEST_DATA_NAME}.tar.gz -C ~/data/; fi
