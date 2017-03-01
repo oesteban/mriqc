@@ -10,14 +10,11 @@ machine:
     - docker
   post:
     # Cache docker installation - must be done after cache has been deployed
-    - sudo service docker stop
-    - sudo mkdir -p ~/.docker/var && sudo chmod 711 ~/.docker/var
-    - sudo rm -rf /var/lib/docker && sudo ln -s ~/.docker/var /var/lib/docker
-    - docker info >/dev/null 2>&1 || sudo service docker start
+    - if [[ ! -d ~/.docker/var/lib/docker ]]; then mkdir -p ~/.docker/var/lib/docker && sudo chown --reference=/var/lib/docker ~/.docker/var/lib/docker && sudo chmod --reference=/var/lib/docker ~/.docker/var/lib/docker && sudo service docker stop && rsync -a /var/lib/docker/* ~/.docker/var/lib/docker && sudo rm -rf /var/lib/docker && sudo ln -s ~/.docker/var/lib/docker /var/lib/docker && echo 'DOCKER_OPTS="$DOCKER_OPTS -g ~/.docker/var/lib/docker"' | sudo tee -a /etc/default/docker && sudo service docker start; fi
 
 dependencies:
   cache_directories:
-    - "~/.docker/var"
+    - "~/.docker/var/lib/docker"
     - "~/data"
 
   pre:
