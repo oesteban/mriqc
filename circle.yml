@@ -11,8 +11,10 @@ machine:
   services:
     - docker
 
-  post:
+  override:
     - sudo service docker stop
+  post:
+    - docker info >/dev/null 2>&1 || service docker start
 
 dependencies:
   cache_directories:
@@ -20,7 +22,6 @@ dependencies:
     - "~/data"
 
   pre:
-    - sudo service docker start
     - mkdir -p ~/data
     # Create scratch folder and force group permissions
     - mkdir -p $SCRATCH && sudo setfacl -d -m group:ubuntu:rwx $SCRATCH && sudo setfacl -m group:ubuntu:rwx $SCRATCH
