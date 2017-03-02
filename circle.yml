@@ -12,7 +12,7 @@ machine:
     - docker info
     # Cache docker installation - must be done after cache has been deployed
     - if [[ ! -d ~/.docker/var/lib/docker ]]; then mkdir -p ~/.docker/var/lib/docker && sudo chown --reference=/var/lib/docker ~/.docker/var/lib/docker && sudo chmod --reference=/var/lib/docker ~/.docker/var/lib/docker; fi
-    - echo 'DOCKER_OPTS="$DOCKER_OPTS -g ~/.docker/var/lib/docker"' | sudo tee -a /etc/default/docker && sudo service docker restart
+    - echo 'DOCKER_OPTS="$DOCKER_OPTS -g $( readlink -f ~/.docker/var/lib/docker )"' | sudo tee -a /etc/default/docker && sudo service docker restart
     # - if [[ ! -d ~/.docker/var/lib/docker ]]; then mkdir -p ~/.docker/var/lib/docker && sudo chown --reference=/var/lib/docker ~/.docker/var/lib/docker && sudo chmod --reference=/var/lib/docker ~/.docker/var/lib/docker && sudo service docker stop && sudo rsync -a /var/lib/docker/* ~/.docker/var/lib/docker && sudo rm -rf /var/lib/docker && sudo ln -s ~/.docker/var/lib/docker /var/lib/docker && echo 'DOCKER_OPTS="$DOCKER_OPTS -g ~/.docker/var/lib/docker"' | sudo tee -a /etc/default/docker && sudo service docker start; fi
     - docker info
 
