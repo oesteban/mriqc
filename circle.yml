@@ -1,19 +1,19 @@
 machine:
   pre:
-    # - curl -sSL https://s3.amazonaws.com/circle-downloads/install-circleci-docker.sh | bash -s -- 1.10.0
-    - curl -fsSL https://get.docker.com | sh
+    - curl -sSL https://s3.amazonaws.com/circle-downloads/install-circleci-docker.sh | bash -s -- 1.10.0
+    # - curl -fsSL https://get.docker.com | sh
   environment:
     SCRATCH: "$HOME/scratch"
     TEST_DATA_NAME: "circle-tests"
     TEST_DATA_URL: "https://files.osf.io/v1/resources/fvuh8/providers/osfstorage/589241339ad5a101fad8c474"
-  # services:
-  #   - docker
+  services:
+    - docker
   post:
-    # - docker info
+    - docker info
     # Cache docker installation - must be done after cache has been deployed
     - mkdir -p ~/.docker/var/lib/docker 
     - sudo chown --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker && sudo chmod --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker
-    - echo 'DOCKER_OPTS="-g /home/ubuntu/.docker/var/lib/docker -s extfs -D"' | tee -a /etc/default/docker && sudo service docker start
+    - echo 'DOCKER_OPTS="-g /home/ubuntu/.docker/var/lib/docker -s vfs -D"' | tee -a /etc/default/docker && sudo service docker restart
     - docker info
 
 dependencies:
