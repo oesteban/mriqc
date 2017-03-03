@@ -13,7 +13,7 @@ machine:
     - mkdir -p ~/.docker/var/lib/docker 
     - sudo chown --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker && sudo chmod --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker
     - sudo find -L /home/ubuntu/.docker/var/lib/docker/ -print0 | sudo xargs -0 chown root:root
-    - echo 'DOCKER_OPTS="-g /home/ubuntu/.docker/var/lib/docker -s btrfs -e lxc -D --userland-proxy=false"' | sudo tee -a /etc/default/docker && sudo service docker restart
+    - echo 'DOCKER_OPTS="-g /home/ubuntu/.docker/var/lib/docker -s extfs -D"' | tee -a /etc/default/docker && sudo service docker restart
     - docker info
 
 dependencies:
