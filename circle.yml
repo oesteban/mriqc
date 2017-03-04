@@ -12,7 +12,7 @@ machine:
     # - docker info
     # Cache docker installation - must be done after cache has been deployed
     - mkdir -p /home/ubuntu/.var/lib/docker/btrfs
-    - if [[ -d /home/ubuntu/.cache/docker ]]; then sudo btrfs subvolume create /home/ubuntu/.var/lib/docker/btrfs/subvolumes && for i in $( sudo ls /home/ubuntu/.cache/docker/btrfs/subvolumes/*); do sudo btrfs subvolume create /home/ubuntu/.var/lib/docker/btrfs/subvolumes/$i && sudo rsync -a --sparse /home/ubuntu/.cache/docker/btrfs/subvolumes/$i /home/ubuntu/.var/lib/docker/btrfs/subvolumes/$i; done && sudo service docker restart; fi
+    - if [[ -d /home/ubuntu/.cache/docker ]]; then sudo btrfs subvolume create /home/ubuntu/.var/lib/docker/btrfs/subvolumes && for i in $( sudo ls /home/ubuntu/.cache/docker/btrfs/subvolumes/); do sudo btrfs subvolume create /home/ubuntu/.var/lib/docker/btrfs/subvolumes/$i && sudo rsync -a --sparse /home/ubuntu/.cache/docker/btrfs/subvolumes/$i /home/ubuntu/.var/lib/docker/btrfs/subvolumes/$i; done && sudo service docker restart; fi
     - sudo chown --reference=/var/lib/docker /home/ubuntu/.var/lib/docker && sudo chmod --reference=/var/lib/docker /home/ubuntu/.var/lib/docker
     - mkdir -p /home/ubuntu/.cache/docker
     - echo 'DOCKER_OPTS="-g /home/ubuntu/.var/lib/docker/ -s btrfs -D"' | sudo tee -a /etc/default/docker && sudo service docker restart
@@ -35,7 +35,7 @@ dependencies:
     # - e=1 && for i in {1..5}; do docker build --rm=false -f docker/Dockerfile -t poldracklab/mriqc:latest --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` --build-arg VCS_REF=`git rev-parse --short HEAD` --build-arg VERSION=$CIRCLE_TAG . && e=0 && break || sleep 15; done && [ "$e" -eq "0" ] :
     #     timeout: 21600
     # Save cache
-    - sudo rsync -a --sparse /home/ubuntu/.var/lib/docker/btrfs ~/.cache/docker/
+    - sudo bash /home/ubuntu/mriqc/.circleci/docker-cache.sh
     # - sudo rsync -a --exclude 'btrfs' /home/ubuntu/.var/lib/docker/* ~/.cache/docker/
     - docker images
 
