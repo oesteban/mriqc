@@ -8,7 +8,8 @@ machine:
     TEST_DATA_URL: "https://files.osf.io/v1/resources/fvuh8/providers/osfstorage/589241339ad5a101fad8c474"
   services:
     - docker
-  # post:
+  post:
+    - /bin/bash ~/.circle/docker-cache.sh && sudo service docker restart
     # - docker info
     # Cache docker installation - must be done after cache has been deployed
     # - sudo chown --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker && sudo chmod --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker
@@ -21,7 +22,6 @@ dependencies:
     - "~/data"
 
   pre:
-    - /bin/bash .circle/docker-cache.sh && sudo service docker restart
     - mkdir -p ~/data
     # Create scratch folder and force group permissions
     - mkdir -p $SCRATCH && sudo setfacl -d -m group:ubuntu:rwx $SCRATCH && sudo setfacl -m group:ubuntu:rwx $SCRATCH
