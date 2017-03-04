@@ -9,11 +9,12 @@ machine:
   services:
     - docker
   post:
-    - if [[ -d ~/.docker ]]; then sudo rsync -a --sparse --exclude 'btrfs' ~/.docker/* /var/lib/docker/ && sudo service docker restart; fi
     # - docker info
     # Cache docker installation - must be done after cache has been deployed
-    # - sudo chown --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker && sudo chmod --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker
-    # - echo 'DOCKER_OPTS="-g /home/ubuntu/.docker/var/lib/docker -s btrfs -D"' | sudo tee -a /etc/default/docker && sudo service docker restart
+    - if [[ -d /home/ubuntu/.cache/docker ]]; then sudo rsync -a --sparse --exclude 'btrfs' /home/ubuntu/.cache/docker/* /home/ubuntu/.var/lib/docker/ && sudo service docker restart; fi
+    - mkdir -p /home/ubuntu/.cache/docker /home/ubuntu/.var/lib/docker/
+    - sudo chown --reference=/var/lib/docker /home/ubuntu/.var/lib/docker && sudo chmod --reference=/var/lib/docker /home/ubuntu/.var/lib/docker
+    - echo 'DOCKER_OPTS="-g /home/ubuntu/.var/lib/docker/ -s btrfs -D"' | sudo tee -a /etc/default/docker && sudo service docker restart
     # - docker info
 
 dependencies:
@@ -33,7 +34,7 @@ dependencies:
     # - e=1 && for i in {1..5}; do docker build --rm=false -f docker/Dockerfile -t poldracklab/mriqc:latest --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` --build-arg VCS_REF=`git rev-parse --short HEAD` --build-arg VERSION=$CIRCLE_TAG . && e=0 && break || sleep 15; done && [ "$e" -eq "0" ] :
     #     timeout: 21600
     # Save cache
-    - mkdir -p ~/.docker/ && sudo rsync -a --sparse /var/lib/docker/* ~/.docker/
+    - sudo rsync -a --sparse /home/ubuntu/.var/lib/docker/* ~/.cache/docker/
     - docker images
 
 test:
