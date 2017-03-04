@@ -22,7 +22,8 @@ dependencies:
     - "~/.cache/docker"
     - "~/data"
 
-  pre:
+  # pre:
+  override:
     - mkdir -p ~/data
     # Create scratch folder and force group permissions
     - mkdir -p $SCRATCH && sudo setfacl -d -m group:ubuntu:rwx $SCRATCH && sudo setfacl -m group:ubuntu:rwx $SCRATCH
@@ -33,9 +34,9 @@ dependencies:
     # - e=1 && for i in {1..5}; do docker build --rm=false -f docker/Dockerfile -t poldracklab/mriqc:latest --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` --build-arg VCS_REF=`git rev-parse --short HEAD` --build-arg VERSION=$CIRCLE_TAG . && e=0 && break || sleep 15; done && [ "$e" -eq "0" ] :
     #     timeout: 21600
     # Save cache
+    - sudo rsync -a --exclude 'btrfs' /home/ubuntu/.var/lib/docker/* ~/.cache/docker/
     - sudo rsync -a --sparse /home/ubuntu/.var/lib/docker/btrfs ~/.cache/docker/
     - docker images
-  # override:
 
 test:
   override:
