@@ -10,7 +10,7 @@ machine:
     - docker
   post:
     - docker info
-    - /bin/bash docker-cache.sh
+    - /bin/bash .circle/docker-cache.sh
     # Cache docker installation - must be done after cache has been deployed
     # - sudo chown --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker && sudo chmod --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker
     # - echo 'DOCKER_OPTS="-g /home/ubuntu/.docker/var/lib/docker -s btrfs -D"' | sudo tee -a /etc/default/docker && sudo service docker restart
