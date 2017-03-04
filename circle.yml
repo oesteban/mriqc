@@ -10,15 +10,15 @@ machine:
     - docker
   post:
     - docker info
+    - /bin/bash docker-cache.sh
     # Cache docker installation - must be done after cache has been deployed
-    - mkdir -p ~/.docker/var/lib/docker
-    - sudo chown --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker && sudo chmod --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker
-    - echo 'DOCKER_OPTS="-g /home/ubuntu/.docker/var/lib/docker -s btrfs -D"' | sudo tee -a /etc/default/docker && sudo service docker restart
-    - docker info
+    # - sudo chown --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker && sudo chmod --reference=/var/lib/docker /home/ubuntu/.docker/var/lib/docker
+    # - echo 'DOCKER_OPTS="-g /home/ubuntu/.docker/var/lib/docker -s btrfs -D"' | sudo tee -a /etc/default/docker && sudo service docker restart
+    # - docker info
 
 dependencies:
   cache_directories:
-    - "~/.docker/var/lib/docker"
+    - "~/.docker"
     - "~/data"
 
   pre:
@@ -29,8 +29,10 @@ dependencies:
   override:
     - docker images
     - sed -i -E "s/(__version__ = )'[A-Za-z0-9.-]+'/\1'$CIRCLE_TAG'/" mriqc/info.py
-    - e=1 && for i in {1..5}; do sudo docker build --rm=false -f docker/Dockerfile -t poldracklab/mriqc:latest --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` --build-arg VCS_REF=`git rev-parse --short HEAD` --build-arg VERSION=$CIRCLE_TAG . && e=0 && break || sleep 15; done && [ "$e" -eq "0" ] :
+    - e=1 && for i in {1..5}; do docker build --rm=false -f docker/Dockerfile -t poldracklab/mriqc:latest --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` --build-arg VCS_REF=`git rev-parse --short HEAD` --build-arg VERSION=$CIRCLE_TAG . && e=0 && break || sleep 15; done && [ "$e" -eq "0" ] :
         timeout: 21600
+    - mkdir -p ~/.docker/
+    - sudo rsync -a --sparse /var/lib/docker/* ~/.docker/
     - docker images
 
 test:
