@@ -35,7 +35,7 @@ dependencies:
     #     timeout: 21600
     # Save cache
     - sudo rsync -a --sparse /home/ubuntu/.var/lib/docker/btrfs ~/.cache/docker/
-    - sudo rsync -a --exclude 'btrfs' /home/ubuntu/.var/lib/docker/* ~/.cache/docker/
+    # - sudo rsync -a --exclude 'btrfs' /home/ubuntu/.var/lib/docker/* ~/.cache/docker/
     - docker images
 
 test:
