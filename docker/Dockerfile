@@ -1,3 +1,3 @@
-FROM poldracklab/neuroimaging-core:base-0.0.2
+FROM busybox:latest
 
 COPY . /root/src/mriqc/
