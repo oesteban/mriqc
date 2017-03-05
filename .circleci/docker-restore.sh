@@ -11,13 +11,17 @@ set -x         # Print command traces before executing command.
 
 DOCKER_CACHE_DIR="/home/ubuntu/.cache/docker"
 
-if [ -d "${DOCKER_CACHE_DIR}" ]; then
+if [ ! -d "${DOCKER_CACHE_DIR}" ]; then
 	echo "No docker cache found in ${DOCKER_CACHE_DIR}"
 	exit 0
 fi
 
-if [ -d "${DOCKER_CACHE_DIR}/btrfs" ]; then
+if [ ! -d "${DOCKER_CACHE_DIR}/btrfs" ]; then
 	echo "No BTRFS system found"
+fi
+
+if [ ! -d "${DOCKER_CACHE_DIR}/btrfs-sys" ]; then
+	echo "No cache of BTRFS system found"
 fi
 
 # Print empty layers
