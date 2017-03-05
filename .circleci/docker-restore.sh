@@ -12,6 +12,9 @@ set -x         # Print command traces before executing command.
 mkdir -p /home/ubuntu/.cache/docker/btrfs/
 mv /home/ubuntu/.cache/docker/btrfs /home/ubuntu/.cache/docker/btrfs-sys
 
+# Print empty layers
+find /home/ubuntu/.cache/docker/btrfs-sys/subvolumes -maxdepth 1 \! -empty -print
+
 # Link layers
 mkdir -p /home/ubuntu/.cache/docker/btrfs/
 btrfs subvolume create /home/ubuntu/.cache/docker/btrfs/subvolumes
@@ -20,8 +23,6 @@ for src in $( ls /home/ubuntu/.cache/docker/btrfs-sys/subvolumes/* ); do
 	btrfs subvolume create /home/ubuntu/.cache/docker/btrfs/subvolumes/$layer
 	cp -r $src/* /home/ubuntu/.cache/docker/btrfs/subvolumes/$layer/
 done
-
-find /home/ubuntu/.cache/docker/btrfs/subvolumes/ -user nobody -type d -print
 
 # Clean-up broken layers
 # for broken in $( find /home/ubuntu/.cache/docker/btrfs-sys/subvolumes/ -user nobody -type d ); do
