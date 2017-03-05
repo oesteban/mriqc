@@ -11,11 +11,14 @@ set -x         # Print command traces before executing command.
 
 DOCKER_CACHE_DIR="/home/ubuntu/.cache/docker"
 
-if [ -d "${DOCKER_CACHE_DIR}/btrfs" ]; then
+if [ -d "${DOCKER_CACHE_DIR}" ]; then
 	echo "No docker cache found in ${DOCKER_CACHE_DIR}"
 	exit 0
 fi
 
+if [ -d "${DOCKER_CACHE_DIR}/btrfs" ]; then
+	echo "No BTRFS system found"
+fi
 
 # Print empty layers
 find ${DOCKER_CACHE_DIR}/btrfs/subvolumes -maxdepth 1 \! -empty -print
@@ -34,6 +37,9 @@ for src in $( ls ${DOCKER_CACHE_DIR}/btrfs-sys/subvolumes/* ); do
 		echo "Layer $layer is empty"
 	fi
 done
+
+chown --reference=/var/lib/docker ${DOCKER_CACHE_DIR}
+chmod --reference=/var/lib/docker ${DOCKER_CACHE_DIR}
 
 # Clean-up broken layers
 # for broken in $( find ${DOCKER_CACHE_DIR}/btrfs-sys/subvolumes/ -user nobody -type d ); do
