@@ -11,8 +11,12 @@ set -x         # Print command traces before executing command.
 
 DOCKER_CACHE_DIR="/home/ubuntu/.cache/docker"
 
+# Modify the docker directory
+echo "DOCKER_OPTS=\"-g ${DOCKER_CACHE_DIR} -s btrfs -D\"" >> /etc/default/docker
+
 if [ ! -d "${DOCKER_CACHE_DIR}" ]; then
 	echo "No docker cache found in ${DOCKER_CACHE_DIR}"
+	service docker restart
 	exit 0
 fi
 
@@ -44,6 +48,7 @@ done
 
 chown --reference=/var/lib/docker ${DOCKER_CACHE_DIR}
 chmod --reference=/var/lib/docker ${DOCKER_CACHE_DIR}
+service docker restart
 
 # Clean-up broken layers
 # for broken in $( find ${DOCKER_CACHE_DIR}/btrfs-sys/subvolumes/ -user nobody -type d ); do

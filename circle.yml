@@ -12,10 +12,6 @@ machine:
     # - docker info
     # Cache docker installation - must be done after cache has been deployed
     - sudo bash /home/ubuntu/mriqc/.circleci/docker-restore.sh
-    #- sudo rm -r /home/ubuntu/.cache/docker/btrfs
-    # - if [[ -d /home/ubuntu/.cache/docker ]]; then sudo rsync -avr --exclude 'btrfs' ~/.cache/docker/* /home/ubuntu/.var/lib/docker/ && sudo btrfs subvolume create /home/ubuntu/.var/lib/docker/btrfs/subvolumes && for i in $( sudo ls /home/ubuntu/.cache/docker/btrfs/subvolumes/); do sudo btrfs subvolume create /home/ubuntu/.var/lib/docker/btrfs/subvolumes/$i && sudo rsync -ar --sparse /home/ubuntu/.cache/docker/btrfs/subvolumes/$i /home/ubuntu/.var/lib/docker/btrfs/subvolumes/$i && find /home/ubuntu/.var/lib/docker/; done; fi
-    # - mkdir -p /home/ubuntu/.cache/docker
-    - echo 'DOCKER_OPTS="-g /home/ubuntu/.cache/docker/ -s btrfs -D"' | sudo tee -a /etc/default/docker && sudo service docker restart
     - docker info
 
 dependencies:
