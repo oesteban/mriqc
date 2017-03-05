@@ -28,8 +28,11 @@ if [ ! -d "${DOCKER_CACHE_DIR}/btrfs-sys" ]; then
 	echo "No cache of BTRFS system found"
 fi
 
+# Stop running docker
+service docker stop
+
 # Print empty layers
-find ${DOCKER_CACHE_DIR}/btrfs/subvolumes -maxdepth 1 \! -empty -print
+find ${DOCKER_CACHE_DIR}/btrfs/subvolumes -maxdepth 1 -empty -print
 
 # Link layers
 mv ${DOCKER_CACHE_DIR}/btrfs ${DOCKER_CACHE_DIR}/btrfs-sys
@@ -48,7 +51,8 @@ done
 
 chown --reference=/var/lib/docker ${DOCKER_CACHE_DIR}
 chmod --reference=/var/lib/docker ${DOCKER_CACHE_DIR}
-service docker restart
+
+service docker start
 
 # Clean-up broken layers
 # for broken in $( find ${DOCKER_CACHE_DIR}/btrfs-sys/subvolumes/ -user nobody -type d ); do
