@@ -11,7 +11,8 @@ machine:
   post:
     # - docker info
     # Cache docker installation - must be done after cache has been deployed
-    - mkdir -p /home/ubuntu/.cache/docker/
+    - mkdir -p /home/ubuntu/.cache/docker/btrfs && mv /home/ubuntu/.cache/docker/btrfs /home/ubuntu/.cache/docker/btrfs-sys
+    - sudo ln -s /home/ubuntu/.cache/docker/btrfs-sys /home/ubuntu/.cache/docker/btrfs
     #- sudo rm -r /home/ubuntu/.cache/docker/btrfs
     # - if [[ -d /home/ubuntu/.cache/docker ]]; then sudo rsync -avr --exclude 'btrfs' ~/.cache/docker/* /home/ubuntu/.var/lib/docker/ && sudo btrfs subvolume create /home/ubuntu/.var/lib/docker/btrfs/subvolumes && for i in $( sudo ls /home/ubuntu/.cache/docker/btrfs/subvolumes/); do sudo btrfs subvolume create /home/ubuntu/.var/lib/docker/btrfs/subvolumes/$i && sudo rsync -ar --sparse /home/ubuntu/.cache/docker/btrfs/subvolumes/$i /home/ubuntu/.var/lib/docker/btrfs/subvolumes/$i && find /home/ubuntu/.var/lib/docker/; done; fi
     - sudo chown --reference=/var/lib/docker /home/ubuntu/.cache/docker && sudo chmod --reference=/var/lib/docker /home/ubuntu/.cache/docker
