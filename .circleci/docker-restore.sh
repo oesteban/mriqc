@@ -7,7 +7,7 @@
 # Setting      # $ help set
 set -e         # Exit immediately if a command exits with a non-zero status.
 set -u         # Treat unset variables as an error when substituting.
-set -x         # Print command traces before executing command.
+# set -x         # Print command traces before executing command.
 
 DOCKER_CACHE_DIR="/home/ubuntu/.cache/docker"
 
@@ -15,17 +15,12 @@ DOCKER_CACHE_DIR="/home/ubuntu/.cache/docker"
 echo "DOCKER_OPTS=\"-g ${DOCKER_CACHE_DIR} -s btrfs -D\"" >> /etc/default/docker
 
 if [ ! -d "${DOCKER_CACHE_DIR}" ]; then
-	echo "No docker cache found in ${DOCKER_CACHE_DIR}"
+	echo "No docker cache found in ${DOCKER_CACHE_DIR}. Initializing..."
+	mkdir -p ${DOCKER_CACHE_DIR}
+	chown --reference=/var/lib/docker ${DOCKER_CACHE_DIR}
+	chmod --reference=/var/lib/docker ${DOCKER_CACHE_DIR}
 	service docker restart
 	exit 0
-fi
-
-if [ ! -d "${DOCKER_CACHE_DIR}/btrfs" ]; then
-	echo "No BTRFS system found"
-fi
-
-if [ ! -d "${DOCKER_CACHE_DIR}/btrfs-sys" ]; then
-	echo "No cache of BTRFS system found"
 fi
 
 # Stop running docker
@@ -34,23 +29,20 @@ service docker stop
 # Print empty layers
 find ${DOCKER_CACHE_DIR}/btrfs/subvolumes -maxdepth 1 -empty -print
 
-# Link layers
-mv ${DOCKER_CACHE_DIR}/btrfs ${DOCKER_CACHE_DIR}/btrfs-sys
-mkdir -p ${DOCKER_CACHE_DIR}/btrfs
-btrfs subvolume create ${DOCKER_CACHE_DIR}/btrfs/subvolumes
-for src in $( ls ${DOCKER_CACHE_DIR}/btrfs-sys/subvolumes/* ); do
-	layer=$( basename $src )
+# # Link layers
+# mv ${DOCKER_CACHE_DIR}/btrfs ${DOCKER_CACHE_DIR}/btrfs-sys
+# mkdir -p ${DOCKER_CACHE_DIR}/btrfs
+# btrfs subvolume create ${DOCKER_CACHE_DIR}/btrfs/subvolumes
+# for src in $( ls ${DOCKER_CACHE_DIR}/btrfs-sys/subvolumes/* ); do
+# 	layer=$( basename $src )
 
-	if find "$src" -mindepth 1 -print -quit | grep -q .; then
-		btrfs subvolume create ${DOCKER_CACHE_DIR}/btrfs/subvolumes/$layer
-		cp -r $src/* ${DOCKER_CACHE_DIR}/btrfs/subvolumes/$layer/
-	else
-		echo "Layer $layer is empty"
-	fi
-done
-
-chown --reference=/var/lib/docker ${DOCKER_CACHE_DIR}
-chmod --reference=/var/lib/docker ${DOCKER_CACHE_DIR}
+# 	if find "$src" -mindepth 1 -print -quit | grep -q .; then
+# 		btrfs subvolume create ${DOCKER_CACHE_DIR}/btrfs/subvolumes/$layer
+# 		cp -r $src/* ${DOCKER_CACHE_DIR}/btrfs/subvolumes/$layer/
+# 	else
+# 		echo "Layer $layer is empty"
+# 	fi
+# done
 
 service docker start
 
