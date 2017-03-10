@@ -19,5 +19,5 @@ for layerpath in $( find ${DOCKER_VOLUMES} -maxdepth 1 ); do
 	layerid=$( basename $layerpath )
 	echo "Caching layer $layerid"
 	# Cache this layer
-	sudo btrfs subvolume snapshot -r $layerpath /home/ubuntu/btrfs/$layerid | gzip -9 > ${DOCKER_CACHE_DIR}/$layerid.gz
+	btrfs subvolume snapshot -r $layerpath /home/ubuntu/btrfs/$layerid | gzip -9 > ${DOCKER_CACHE_DIR}/$layerid.gz
 done
