@@ -15,7 +15,7 @@ DOCKER_VOLUMES="${DOCKER_ROOT_DIR}/btrfs/subvolumes"
 DOCKER_CACHE_DIR="/home/ubuntu/.cache/docker"
 
 mkdir -p /home/ubuntu/btrfs
-for layerpath in $( find ${DOCKER_VOLUMES} -maxdepth 1 ); then
+for layerpath in $( find ${DOCKER_VOLUMES} -maxdepth 1 ); do
 	layerid=$( basename $layerpath )
 	echo "Caching layer $layerid"
 	# Cache this layer
