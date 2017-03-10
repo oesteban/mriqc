@@ -11,6 +11,7 @@ set -x         # Print command traces before executing command.
 
 DOCKER_ROOT_DIR="/var/lib/docker"
 DOCKER_VOLUMES="${DOCKER_ROOT_DIR}/btrfs/subvolumes"
+DOCKER_CACHE_DIR="/home/ubuntu/.cache/docker"
 
 mkdir -p /home/ubuntu/btrfs
 for layerpath in $( ls -F ${DOCKER_VOLUMES} | grep / ); do
