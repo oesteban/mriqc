@@ -36,12 +36,10 @@ jobs:
           name: Install dependencies
           command: |
             apk update
-            apk add --no-cache \
-              py-pip=9.0.0-r1 \
-              ca-certificates \
-              git \
-              openssl
+            apk add --no-cache bash util-linux pciutils usbutils coreutils binutils findutils grep openssl git ca-certificates
             update-ca-certificates
+            apk add --no-cache \
+              py-pip=9.0.0-r1
             pip install \
               docker-compose==1.12.0 \
               awscli==1.11.76
@@ -93,7 +91,7 @@ jobs:
 
       - run:
           name: Participant level test
-          command: /bin/bash .circleci/participant.sh
+          command: bash .circleci/participant.sh
           timeout: 3200
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
@@ -101,26 +99,26 @@ jobs:
 
       - run:
           name: Group level test
-          command: /bin/bash .circleci/group.sh
+          command: bash .circleci/group.sh
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
 
       - run:
           name: Check outputs
-          command: /bin/bash .circleci/check_outputs.sh
+          command: bash .circleci/check_outputs.sh
           timeout: 3200
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
 
       - run:
           name: Check IQMs
-          command: /bin/bash .circleci/check_iqms.sh
+          command: bash .circleci/check_iqms.sh
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
 
       - run:
           name: Check IQMs were sent to WebAPI
-          command: /bin/bash .circleci/webapi.sh
+          command: bash .circleci/webapi.sh
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
             MRIQC_API_HOST: $( hostname -I | awk '{print $1}' )
