@@ -16,6 +16,15 @@ jobs:
 
     steps:
       - checkout
+      - run:
+          name: Checkout MRIQCWebAPI
+          command: |
+            cd /work; git clone https://github.com/poldracklab/mriqcwebapi.git
+            cd /work/mriqcwebapi
+            git checkout ${MRIQC_API_TAG}
+            if [ "${MRIQC_API_SECRET_TOKEN}" != "" ]; then sed -i -E "s/<secret_token>/$MRIQC_API_SECRET_TOKEN/" /work/mriqcwebapi/dockereve-master/.env && grep -q -i $MRIQC_API_SECRET_TOKEN /work/mriqcwebapi/dockereve-master/.env; fi
+            if [ "${MRIQC_API_SECRET_TOKEN}" != "" ]; then sed -i -E "s/<secret_token>/$MRIQC_API_SECRET_TOKEN/" /work/mriqc/mriqc/interfaces/webapi.py && grep -q -i $MRIQC_API_SECRET_TOKEN /work/mriqc/mriqc/interfaces/webapi.py; fi
+
       - setup_remote_docker
       - run:
           name: Install dependencies
@@ -34,9 +43,9 @@ jobs:
             - /cache/docker.tar
             - /data
 
-      # - run:
-      #     name: Get test data
-      #     command: mkdir -p /data/ && if [[ ! -d /data/${TEST_DATA_NAME} ]]; then curl -retry 5 --max-time 10 --connect-timeout 5 --retry-max-time 200 --retry-delay 2 -o ${TEST_DATA_NAME}.tar.gz "${TEST_DATA_URL}" && tar xzf ${TEST_DATA_NAME}.tar.gz -C /data/; fi
+      - run:
+          name: Get test data
+          command: mkdir -p /data/ && if [[ ! -d /data/${TEST_DATA_NAME} ]]; then wget -O ${TEST_DATA_NAME}.tar.gz "${TEST_DATA_URL}" && tar xzf ${TEST_DATA_NAME}.tar.gz -C /data/; fi
 
       - run:
           name: Load Docker image layer cache
@@ -51,15 +60,10 @@ jobs:
       - run:
           name: Set-up MRIQCWebAPI
           command: |
-            cd /work; git clone https://github.com/poldracklab/mriqcwebapi.git
-            cd /work/mriqcwebapi
-            git checkout ${MRIQC_API_TAG}
-            cd /work/mriqc
-            if [ "${MRIQC_API_SECRET_TOKEN}" != "" ]; then sed -i -E "s/<secret_token>/$MRIQC_API_SECRET_TOKEN/" /work/mriqcwebapi/dockereve-master/.env && grep -q -i $MRIQC_API_SECRET_TOKEN /work/mriqcwebapi/dockereve-master/.env; fi
             docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml pull
             docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml build
             nohup bash -c "docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml --verbose up -d" && sleep 10
-            if [ "${MRIQC_API_SECRET_TOKEN}" != "" ]; then sed -i -E "s/<secret_token>/$MRIQC_API_SECRET_TOKEN/" /work/mriqc/mriqc/interfaces/webapi.py && grep -q -i $MRIQC_API_SECRET_TOKEN /work/mriqc/mriqc/interfaces/webapi.py; fi
+
       - run:
           name: Docker save
           command: |
