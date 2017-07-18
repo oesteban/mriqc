@@ -93,7 +93,7 @@ jobs:
 
       - run:
           name: Participant level test
-          command: bash .circleci/participant.sh
+          command: /bin/bash .circleci/participant.sh
           timeout: 3200
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
@@ -101,26 +101,26 @@ jobs:
 
       - run:
           name: Group level test
-          command: bash .circleci/group.sh
+          command: /bin/bash .circleci/group.sh
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
 
       - run:
           name: Check outputs
-          command: bash .circleci/check_outputs.sh
+          command: /bin/bash .circleci/check_outputs.sh
           timeout: 3200
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
 
       - run:
           name: Check IQMs
-          command: bash .circleci/check_iqms.sh
+          command: /bin/bash .circleci/check_iqms.sh
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
 
       - run:
           name: Check IQMs were sent to WebAPI
-          command: bash .circleci/webapi.sh
+          command: /bin/bash .circleci/webapi.sh
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
             MRIQC_API_HOST: $( hostname -I | awk '{print $1}' )
