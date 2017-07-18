@@ -14,6 +14,12 @@ jobs:
       TEST_DATA_URL: "https://files.osf.io/v1/resources/fvuh8/providers/osfstorage/590ce4a96c613b025147c568"
       MRIQC_API_TAG: 1.0.2
 
+    branches:
+      ignore:
+        - gh-pages
+
+    parallelism: 2
+
     steps:
       - checkout
       - run:
@@ -83,12 +89,11 @@ jobs:
           name: Start MRIQCWebAPI
           command: |
             mkdir -p /logs
-            nohup bash -c "docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml --verbose up -d" >/logs/mriqc.log 2>&1 && sleep 10
+            docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml --verbose up -d" && sleep 10
 
       - run:
           name: Participant level test
           command: bash .circleci/participant.sh
-          parallel: true
           timeout: 3200
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
@@ -97,14 +102,12 @@ jobs:
       - run:
           name: Group level test
           command: bash .circleci/group.sh
-          parallel: true
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
 
       - run:
           name: Check outputs
           command: bash .circleci/check_outputs.sh
-          parallel: true
           timeout: 3200
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
@@ -112,17 +115,18 @@ jobs:
       - run:
           name: Check IQMs
           command: bash .circleci/check_iqms.sh
-          parallel: true
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
 
       - run:
           name: Check IQMs were sent to WebAPI
           command: bash .circleci/webapi.sh
-          parallel: true
           environment:
             GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
             MRIQC_API_HOST: $( hostname -I | awk '{print $1}' )
+
+      - store_artifacts:
+          path: /scratch
 
       - deploy:
           name: Push application Docker image
@@ -147,11 +151,3 @@ jobs:
                 printf "[distutils]\nindex-servers =\n    pypi\n\n[pypi]\nusername:$PYPI_USER\npassword:$PYPI_PASS\n" > ~/.pypirc
                 python setup.py sdist upload -r pypi
             fi
-
-  # general:
-  #   artifacts:
-  #     - "~/scratch"
-  #   branches:
-  #     ignore:
-  #       - gh-pages # ignore gh-pages
-  #       - doc/* # ignore all doc-related branches
