@@ -60,7 +60,7 @@ jobs:
             - /cache/docker.tar
             - /data
 
-- run:
+      - run:
           name: Docker run
           command: docker run ${DOCKER_IMAGE}:${DOCKER_TAG} --help
 
