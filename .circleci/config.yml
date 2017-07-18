@@ -66,7 +66,6 @@ jobs:
           command: |
             docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml pull
             docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml build
-            nohup bash -c "docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml --verbose up -d" && sleep 10
 
       - run:
           name: Docker save
@@ -79,6 +78,12 @@ jobs:
          paths:
             - /cache/docker.tar
             - /data
+
+      - run:
+          name: Start MRIQCWebAPI
+          command: |
+            mkdir -p /logs
+            nohup bash -c "docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml --verbose up -d" >/logs/mriqc.log 2>&1 && sleep 10
 
       - run:
           name: Participant level test
