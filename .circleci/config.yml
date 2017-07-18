@@ -34,9 +34,9 @@ jobs:
             - /cache/docker.tar
             - /data
 
-      - run:
-          name: Get test data
-          command: mkdir -p /data/ && if [[ ! -d /data/${TEST_DATA_NAME} ]]; then curl -retry 5 --max-time 10 --connect-timeout 5 --retry-max-time 200 --retry-delay 2 -o ${TEST_DATA_NAME}.tar.gz "${TEST_DATA_URL}" && tar xzf ${TEST_DATA_NAME}.tar.gz -C /data/; fi
+      # - run:
+      #     name: Get test data
+      #     command: mkdir -p /data/ && if [[ ! -d /data/${TEST_DATA_NAME} ]]; then curl -retry 5 --max-time 10 --connect-timeout 5 --retry-max-time 200 --retry-delay 2 -o ${TEST_DATA_NAME}.tar.gz "${TEST_DATA_URL}" && tar xzf ${TEST_DATA_NAME}.tar.gz -C /data/; fi
 
       - run:
           name: Load Docker image layer cache
