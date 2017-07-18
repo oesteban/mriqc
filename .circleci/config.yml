@@ -7,7 +7,7 @@ jobs:
 
     environment:
       TZ: "/usr/share/zoneinfo/America/Los_Angeles"
-      SCRATCH: "$HOME/scratch"
+      SCRATCH: "/scratch"
       DOCKER_IMAGE: "poldracklab/mriqc"
       DOCKER_TAG: "latest"
       TEST_DATA_NAME: "circle-tests"
@@ -52,9 +52,9 @@ jobs:
           name: Set-up MRIQCWebAPI
           command: |
             cd /work; git clone https://github.com/poldracklab/mriqcwebapi.git
-            pushd mriqcwebapi
+            cd /work/mriqcwebapi
             git checkout ${MRIQC_API_TAG}
-            popd
+            cd /work/mriqc
             if [ "${MRIQC_API_SECRET_TOKEN}" != "" ]; then sed -i -E "s/<secret_token>/$MRIQC_API_SECRET_TOKEN/" /work/mriqcwebapi/dockereve-master/.env && grep -q -i $MRIQC_API_SECRET_TOKEN /work/mriqcwebapi/dockereve-master/.env; fi
             docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml pull
             docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml build
@@ -73,39 +73,67 @@ jobs:
             - /data
 
       - run:
-          name: Docker run
-          command: docker run ${DOCKER_IMAGE}:${DOCKER_TAG} --help
+          name: Participant level test
+          command: bash .circleci/participant.sh
+          parallel: true
+          timeout: 3200
+          environment:
+            GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
+            MRIQC_API_HOST: $( hostname -I | awk '{print $1}' )
 
-      # Prepare MRIQCWebAPI
-      # - pip install docker-compose
-      # - rm -rf $HOME/mriqcwebapi
+      - run:
+          name: Group level test
+          command: bash .circleci/group.sh
+          parallel: true
+          environment:
+            GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
 
-  # test:
-  #   override:
-  #     - bash .circleci/participant.sh :
-  #         parallel: true
-  #         timeout: 3200
-  #         environment:
-  #           GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
-  #           MRIQC_API_HOST: $( hostname -I | awk '{print $1}' )
-  #     - bash .circleci/group.sh :
-  #         parallel: true
-  #         environment:
-  #           GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
-  #     - bash .circleci/check_outputs.sh :
-  #         parallel: true
-  #         timeout: 3200
-  #         environment:
-  #           GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
-  #     - bash .circleci/check_iqms.sh :
-  #         parallel: true
-  #         environment:
-  #           GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
-  #     - bash .circleci/webapi.sh :
-  #         parallel: true
-  #         environment:
-  #           GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
-  #           MRIQC_API_HOST: $( hostname -I | awk '{print $1}' )
+      - run:
+          name: Check outputs
+          command: bash .circleci/check_outputs.sh
+          parallel: true
+          timeout: 3200
+          environment:
+            GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
+
+      - run:
+          name: Check IQMs
+          command: bash .circleci/check_iqms.sh
+          parallel: true
+          environment:
+            GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
+
+      - run:
+          name: Check IQMs were sent to WebAPI
+          command: bash .circleci/webapi.sh
+          parallel: true
+          environment:
+            GIT_COMMIT_MSG: $( git log --format=oneline -n 1 $CIRCLE_SHA1 )
+            MRIQC_API_HOST: $( hostname -I | awk '{print $1}' )
+
+      - deploy:
+          name: Push application Docker image
+          timeout: 21600
+          command: |
+            if [[ "${CIRCLE_TAG}" != "" ]] && [[ "${DOCKER_PASS}" != "" ]]; then
+                VERSION_EXTRA=$(echo ${CIRCLE_TAG} | cut -d '-' -f 2)
+                docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+                docker tag ${DOCKER_IMAGE} ${DOCKER_IMAGE}:$CIRCLE_TAG
+                docker push ${DOCKER_IMAGE}:$CIRCLE_TAG
+                if [ "${VERSION_EXTRA:0:2}" != "rc" ]; then
+                    echo "This is not a release candidate, pushing ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                fi
+            fi
+
+      - deploy:
+          name: Push package to PyPI
+          command: |
+            if [[ "${CIRCLE_TAG}" != "" ]] && [[ "$PYPI_PASS" != "" ]]; then
+                echo "${CIRCLE_TAG}" > mriqc/VERSION
+                printf "[distutils]\nindex-servers =\n    pypi\n\n[pypi]\nusername:$PYPI_USER\npassword:$PYPI_PASS\n" > ~/.pypirc
+                python setup.py sdist upload -r pypi
+            fi
 
   # general:
   #   artifacts:
@@ -114,28 +142,3 @@ jobs:
   #     ignore:
   #       - gh-pages # ignore gh-pages
   #       - doc/* # ignore all doc-related branches
-
-  # deployment:
-  #   production:
-  #     tag: /.*/
-  #     commands:
-  #       - ? |
-  #           if [[ -n "$DOCKER_PASS" ]]; then
-  #               VERSION_EXTRA=$(echo ${CIRCLE_TAG} | cut -d '-' -f 2)
-  #               docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-  #               docker tag ${DOCKER_IMAGE} ${DOCKER_IMAGE}:$CIRCLE_TAG
-  #               docker push ${DOCKER_IMAGE}:$CIRCLE_TAG
-
-  #               if [ "${VERSION_EXTRA:0:2}" != "rc" ]; then
-  #                   echo "This is not a release candidate, pushing ${DOCKER_IMAGE}:${DOCKER_TAG}"
-  #                   docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-  #               fi
-  #           fi
-  #         :
-  #           timeout: 21600
-  #       - |
-  #         if [[ "$PYPI_PASS" != "" ]]; then
-  #             echo "${CIRCLE_TAG}" > mriqc/VERSION
-  #             printf "[distutils]\nindex-servers =\n    pypi\n\n[pypi]\nusername:$PYPI_USER\npassword:$PYPI_PASS\n" > ~/.pypirc
-  #             python setup.py sdist upload -r pypi
-  #         fi
