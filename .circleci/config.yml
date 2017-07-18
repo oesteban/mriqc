@@ -89,7 +89,7 @@ jobs:
           name: Start MRIQCWebAPI
           command: |
             mkdir -p /logs
-            docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml --verbose up -d" && sleep 10
+            docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml --verbose up -d && sleep 10
 
       - run:
           name: Participant level test
