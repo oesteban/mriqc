@@ -22,7 +22,7 @@ jobs:
           command: |
             apk add --no-cache \
               py-pip=9.0.0-r1 \
-              curl
+              git
             pip install \
               docker-compose==1.12.0 \
               awscli==1.11.76
@@ -49,6 +49,18 @@ jobs:
           command: docker build --cache-from=${DOCKER_IMAGE} -t ${DOCKER_IMAGE}:${DOCKER_TAG} --build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` --build-arg VCS_REF=`git rev-parse --short HEAD` --build-arg VERSION="${CIRCLE_TAG:-$CIRCLE_SHA1}" .
 
       - run:
+          name: Set-up MRIQCWebAPI
+          command: |
+            cd /work; git clone https://github.com/poldracklab/mriqcwebapi.git
+            pushd mriqcwebapi
+            git checkout ${MRIQC_API_TAG}
+            popd
+            if [ "${MRIQC_API_SECRET_TOKEN}" != "" ]; then sed -i -E "s/<secret_token>/$MRIQC_API_SECRET_TOKEN/" /work/mriqcwebapi/dockereve-master/.env && grep -q -i $MRIQC_API_SECRET_TOKEN /work/mriqcwebapi/dockereve-master/.env; fi
+            docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml pull
+            docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml build
+            nohup bash -c "docker-compose -f /work/mriqcwebapi/dockereve-master/docker-compose.yml --verbose up -d" && sleep 10
+            if [ "${MRIQC_API_SECRET_TOKEN}" != "" ]; then sed -i -E "s/<secret_token>/$MRIQC_API_SECRET_TOKEN/" /work/mriqc/mriqc/interfaces/webapi.py && grep -q -i $MRIQC_API_SECRET_TOKEN /work/mriqc/mriqc/interfaces/webapi.py; fi
+      - run:
           name: Docker save
           command: |
             mkdir -p /cache
@@ -67,12 +79,6 @@ jobs:
       # Prepare MRIQCWebAPI
       # - pip install docker-compose
       # - rm -rf $HOME/mriqcwebapi
-      # - cd $HOME && git clone https://github.com/poldracklab/mriqcwebapi.git && cd $HOME/mriqcwebapi && git checkout ${MRIQC_API_TAG}
-      # - if [ "${MRIQC_API_SECRET_TOKEN}" != "" ]; then sed -i -E "s/<secret_token>/$MRIQC_API_SECRET_TOKEN/" $HOME/mriqcwebapi/dockereve-master/.env && grep -q -i $MRIQC_API_SECRET_TOKEN $HOME/mriqcwebapi/dockereve-master/.env; fi
-      # - docker-compose -f $HOME/mriqcwebapi/dockereve-master/docker-compose.yml pull
-      # - docker-compose -f $HOME/mriqcwebapi/dockereve-master/docker-compose.yml build
-      # - nohup bash -c "docker-compose -f $HOME/mriqcwebapi/dockereve-master/docker-compose.yml --verbose up -d" && sleep 10
-      # - if [ "${MRIQC_API_SECRET_TOKEN}" != "" ]; then sed -i -E "s/<secret_token>/$MRIQC_API_SECRET_TOKEN/" mriqc/interfaces/webapi.py && grep -q -i $MRIQC_API_SECRET_TOKEN mriqc/interfaces/webapi.py; fi
 
   # test:
   #   override:
