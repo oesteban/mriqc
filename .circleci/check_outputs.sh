@@ -25,7 +25,7 @@ fi
 
 echo "Checking outputs (${MODALITY})..."
 find $SCRATCH/out/   | sed s+$SCRATCH/++ | sort > $SCRATCH/outputs.txt
-diff $HOME/$CIRCLE_PROJECT_REPONAME/tests/circle_${MODALITY}.txt $SCRATCH/outputs.txt
+diff /work/$CIRCLE_PROJECT_REPONAME/tests/circle_${MODALITY}.txt $SCRATCH/outputs.txt
 exit_code=$?
 
 echo "Checking nifti files (${MODALITY})..."
@@ -36,5 +36,5 @@ HASHCMD="docker run -i -v $SCRATCH:/scratch \
 
 
 find $SCRATCH -name "*.nii.gz" -type f  | sed s+$SCRATCH+/scratch+ | sort | xargs -n1 $HASHCMD >> $SCRATCH/nii_outputs.txt
-diff $HOME/$CIRCLE_PROJECT_REPONAME/tests/nii_${MODALITY}.txt $SCRATCH/nii_outputs.txt
+diff /work/$CIRCLE_PROJECT_REPONAME/tests/nii_${MODALITY}.txt $SCRATCH/nii_outputs.txt
 exit $(( $? + $exit_code ))

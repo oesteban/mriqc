@@ -28,7 +28,7 @@ if [ "$( grep -qiP 'docs[ _]?only' <<< "$GIT_COMMIT_MSG"; echo $?)" == "0" ]; th
     exit $exit_docs
 fi
 
-DOCKER_RUN="docker run -i -v $HOME/data:/data:ro \
+DOCKER_RUN="docker run -i -v /data:/data:ro \
                        -v $SCRATCH:/scratch -w /scratch \
                        ${DOCKER_IMAGE}:${DOCKER_TAG} \
                        /data/${TEST_DATA_NAME} out/ participant \
