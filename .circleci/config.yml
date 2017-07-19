@@ -28,7 +28,7 @@ jobs:
           command: |
             touch $BASH_ENV
             echo export GIT_COMMIT_MSG="$( git log --format=oneline -n 1 $CIRCLE_SHA1 )" >> $BASH_ENV
-            echo export MRIQC_API_HOST="$( hostname -I | awk '{print $1}' )" >> $BASH_ENV
+            echo export MRIQC_API_HOST="$( hostname -i | awk '{print $1}' )" >> $BASH_ENV
             cat $BASH_ENV
       - run:
           name: Checkout MRIQCWebAPI
