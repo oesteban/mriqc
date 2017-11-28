@@ -1,6 +1,7 @@
 
+============
 Installation
-------------
+============
 
 Containerized versions
 ^^^^^^^^^^^^^^^^^^^^^^
