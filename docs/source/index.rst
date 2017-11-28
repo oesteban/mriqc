@@ -34,6 +34,7 @@ Contents
    reports
    workflows
    classifier
+   interpreting
 
 
 Indices and tables
