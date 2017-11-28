@@ -9,8 +9,8 @@ Interpreting the derivatives of MRIQC
 What to expect when you are expecting (for your images to be good)
 ------------------------------------------------------------------
 
-This far, you probably :ref:`have successfully run MRIQC <running>` on
-your dataset.
+This far, you probably :ref:`have successfully run MRIQC <running_mriqc>`
+on your dataset.
 At this point, you have two valuable classes of derivatives:
 :ref:`a table of Image Quality Metrics (IQMs) <measures>` and
 :ref:`the MRIQC visual reports <reports>`.

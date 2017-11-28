@@ -1,4 +1,6 @@
 
+.. _classifier:
+
 ===================================
 The MRIQC classifier for T1w images
 ===================================
