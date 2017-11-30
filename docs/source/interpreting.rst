@@ -141,6 +141,12 @@ set an appropriate s/q-form matrix to the Nifti header.
    The T1-weighted image enhancing the background intensity ranges.
 
 
+Additional plots generated using the ``--verbose-reports`` flag
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Extra visualizations will be generated if MRIQC is run with the ``--verbose-reports`` flag.
+
+
 Assessing :abbr:`BOLD (blood-oxygen level-dependent)` :abbr:`fMRI (functional MRI)` images
 ------------------------------------------------------------------------------------------
 
