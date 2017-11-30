@@ -121,8 +121,24 @@ This is the one report that experts inspect more thoroughly, in search of:
 The "T1w - noise enhanced" plot
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Some artifacts express at very low intensity levels and are only visible in the background
+for the absence of signal of interest. Therefore, the background can be used as a baseline
+of the noise and structured artifacts that are probably present across the object
+of interest in the scan.
+
+Additionally, bulk head motion is typically highlighted in this view. When this artifact
+is present, it is generally easy to identify a rippling shades as a ghost of the
+forehead and back of the cranium, in the air immediately surrounding the head.
+
+Finally, some other undesired aspects can only visible with this view. For instance,
+the rotation of the image information that is typically applied to align the AC-PC plane
+and the axial plain of the image grid. This is a deterioration factor of the image
+since it requires a resampling (re-gridding) of the image. It is generally preferable to
+set an appropriate s/q-form matrix to the Nifti header.
+
 .. figure:: resources/howto-50052-T1w-bg.png
 
+   The T1-weighted image enhancing the background intensity ranges.
 
 
 Assessing :abbr:`BOLD (blood-oxygen level-dependent)` :abbr:`fMRI (functional MRI)` images
