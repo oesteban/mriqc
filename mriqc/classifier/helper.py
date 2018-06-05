@@ -72,8 +72,9 @@ class CVHelperBase(object):
         self._debug = debug
 
         if rate_label is None:
-            rate_label = ['rater_1', 'rater_2']
-        self._rate_column = rate_label[0]
+            raise RuntimeError('Please set a rate_label column')
+
+        self._rate_column = rate_label
 
         self._Xtrain, self._ftnames = read_dataset(
             X, Y, rate_label=rate_label, rate_selection=rate_selection,

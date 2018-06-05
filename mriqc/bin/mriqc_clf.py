@@ -59,6 +59,8 @@ def get_parser():
                         help='do not binarize labels')
 
     g_input = parser.add_argument_group('Options')
+    g_input.add_argument('--y-column', action='store', default='rater_1',
+                         help='column name to pick Y labels')
     g_input.add_argument('-P', '--parameters', action='store')
     g_input.add_argument('-M', '--model', action='store', default='rfc',
                          choices=['rfc', 'xgb', 'svc_lin', 'svc_rbf'],
@@ -135,6 +137,7 @@ def main():
         cvhelper = CVHelper(
             X=train_path[0],
             Y=train_path[1],
+            rate_label=opts.y_column,
             n_jobs=opts.njobs,
             scorer=opts.scorer,
             b_leaveout=opts.train_balanced_leaveout,
@@ -179,7 +182,7 @@ def main():
                 'option %s.' % msg)
 
         cvhelper = CVHelper(load_clf=load_classifier, n_jobs=opts.njobs,
-                            rate_label=['rater_1'], basename=base_name)
+                            rate_label=[opts.y_column], basename=base_name)
         clf_loaded = True
 
     test_path = _parse_set(opts.test, default='ds030')
