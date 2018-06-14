@@ -10,13 +10,19 @@
 """ Helper functions for the figures in the paper """
 from __future__ import print_function, division, absolute_import, unicode_literals
 import os.path as op
+from math import pi
 import numpy as np
 import pandas as pd
+from ..classifier.data import read_dataset
+from ..classifier.sklearn.preprocessing import BatchRobustScaler
+
+import matplotlib as mpl
+mpl.use('pgf')
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from matplotlib.font_manager import FontProperties
-from ..classifier.data import read_dataset
-from ..classifier.sklearn.preprocessing import BatchRobustScaler
+from matplotlib.patches import RegularPolygon
+import seaborn as sns
 
 
 def plot_batches(fulldata, cols=None, out_file=None, site_labels='left'):
@@ -58,15 +64,11 @@ def plot_batches(fulldata, cols=None, out_file=None, site_labels='left'):
     ax.spines['bottom'].set_visible(False)
     ax.grid(False)
 
-    ticks_font = FontProperties(
-        family='FreeSans', style='normal', size=14,
-        weight='normal', stretch='normal')
+    ticks_font = FontProperties(size=14)
     for label in ax.get_yticklabels():
         label.set_fontproperties(ticks_font)
 
-    ticks_font = FontProperties(
-        family='FreeSans', style='normal', size=12,
-        weight='normal', stretch='normal')
+    ticks_font = FontProperties(size=12)
     for label in ax.get_xticklabels():
         label.set_fontproperties(ticks_font)
 
@@ -93,46 +95,16 @@ def plot_roc_curve(true_y, prob_y, out_file=None):
     return fig
 
 
-def fill_matrix(matrix, width, value='n/a'):
-    if matrix.shape[0] < width:
-        nraters = matrix.shape[1]
-        nas = np.chararray((1, nraters), itemsize=len(value))
-        nas[:] = value
-        matrix = np.vstack(tuple([matrix] + [nas] * (width - matrix.shape[0])))
-    return matrix
-
-
-def plot_raters(dataframe, ax=None, width=101, size=0.40):
+def plot_raters(dataframe, ax=None, width=101, size=0.40, default='whitesmoke'):
     raters = sorted(dataframe.columns.ravel().tolist())
-    dataframe['notnan'] = np.any(np.isnan(dataframe[raters]), axis=1).astype(int)
-    dataframe = dataframe.sort_values(by=['notnan'] + raters, ascending=True)
-    for rater in raters:
-        dataframe[rater] = dataframe[[rater]].astype(str)
-
-    matrix = dataframe.as_matrix()
+    dataframe = dataframe.sort_values(by=raters, ascending=True)
+    matrix = dataframe.values
     nsamples, nraters = dataframe.shape
-    matrix = fill_matrix(matrix, width)
 
-    nblocks = 1
-    if matrix.shape[0] > width:
-        matrices = []
-        nblocks = (matrix.shape[0] // width) + 1
-
-        nas = np.chararray((width, 1), itemsize=3)
-        nas[:] = 'n/a'
-        for i in range(nblocks):
-            if i > 0:
-                matrices.append(nas)
-            matrices.append(matrix[i * width:(i + 1) * width, ...])
-
-        matrices[-1] = fill_matrix(matrices[-1], width)
-        matrix = np.hstack(tuple(matrices))
-
-    palette = {'1.0': 'limegreen', '0.0': 'dimgray', '-1.0': 'tomato', 'n/a': 'w'}
+    palette = {1: 'limegreen', 0: 'dimgray', -1: 'tomato'}
 
     ax = ax if ax is not None else plt.gca()
 
-    # ax.patch.set_facecolor('gray')
     ax.set_aspect('equal', 'box')
     ax.xaxis.set_major_locator(plt.NullLocator())
     ax.yaxis.set_major_locator(plt.NullLocator())
@@ -144,21 +116,24 @@ def plot_raters(dataframe, ax=None, width=101, size=0.40):
     ax.set_ylim(ylims)
 
     offset = 0.5 * (size / .40)
-    for (x, y), w in np.ndenumerate(matrix):
-        if w not in list(palette.keys()):
-            w = 'n/a'
 
-        color = palette[w]
-        rect = plt.Circle([x + offset, y + offset], size,
-                          facecolor=color, edgecolor=color)
-        ax.add_patch(rect)
+    for row in range(nrows):
+        submatrix = matrix[(row * width):, :]
+        submatrix = submatrix[:min(width, len(submatrix)), :]
+        for (x, y), w in np.ndenumerate(submatrix):
+            color = palette.get(w, default)
+            rect = RegularPolygon(
+                [x + offset, y + offset + row * (nraters + 1)], (y + 2) * 2,
+                radius=size, orientation=-0.5 * pi,
+                facecolor=color, edgecolor=color)
+            ax.add_patch(rect)
 
-    # text_x = ((nsamples - 1) % width) + 6.5
+    text_x = ((nsamples - 1) % width) + 6.5
     text_x = -8.5
     for i, rname in enumerate(raters):
-        nsamples = sum(dataframe[rname] != 'n/a')
-        good = 100 * sum(dataframe[rname] == '1.0') / nsamples
-        bad = 100 * sum(dataframe[rname] == '-1.0') / nsamples
+        nsamples = sum(~dataframe[rname].isnull())
+        good = 100 * sum(dataframe[rname] == 1) / nsamples
+        bad = 100 * sum(dataframe[rname] == -1) / nsamples
 
         text_y = 1.5 * i + (nrows - 1) * 2.0
         ax.text(text_x, text_y, '%2.0f%%' % good,
@@ -194,9 +169,7 @@ def plot_raters(dataframe, ax=None, width=101, size=0.40):
     ax.set_yticks([0.5 * (ylims[0] + ylims[1])])
     ax.tick_params(axis='y', which='major', pad=15)
 
-    ticks_font = FontProperties(
-        family='FreeSans', style='normal', size=20,
-        weight='normal', stretch='normal')
+    ticks_font = FontProperties(size=20)
     for label in ax.get_yticklabels():
         label.set_fontproperties(ticks_font)
 
@@ -206,6 +179,40 @@ def plot_raters(dataframe, ax=None, width=101, size=0.40):
 def raters_variability_plot(mdata, figsize=(22, 22), width=101, out_file=None,
                             raters=['rater_1', 'rater_2', 'rater_3'], only_overlap=True,
                             rater_names=['Rater 1', 'Rater 2a', 'Rater 2b']):
+    pgf_with_custom_preamble = {
+    #     'font.sans-serif': ['Helvetica Light'],
+    #     'font.family': 'sans-serif', # use serif/main font for text elements
+        'text.usetex': True,    # use inline math for ticks
+        'pgf.rcfonts': False,   # don't setup fonts from rc parameters
+        'pgf.texsystem': 'xelatex',
+        'verbose.level': 'debug-annoying',
+        "pgf.preamble": [
+    #         r'\renewcommand{\sfdefault}{phv}',
+    #         r'\usepackage[scaled=.92]{helvet}',
+            r'\usepackage{fontspec}',
+            r"""\usepackage{fontspec}
+    \setsansfont{HelveticaLTStd-Light}[
+    Extension=.otf,
+    BoldFont=HelveticaLTStd-Bold,
+    ItalicFont=HelveticaLTStd-LightObl,
+    BoldItalicFont=HelveticaLTStd-BoldObl,
+    ]
+    \setmainfont{HelveticaLTStd-Light}[
+    Extension=.otf,
+    BoldFont=HelveticaLTStd-Bold,
+    ItalicFont=HelveticaLTStd-LightObl,
+    BoldItalicFont=HelveticaLTStd-BoldObl,
+    ]
+    """,
+            r'\renewcommand\familydefault{\sfdefault}',
+    #         r'\setsansfont[Extension=.otf]{Helvetica-LightOblique}',
+    #         r'\setmainfont[Extension=.ttf]{DejaVuSansCondensed}',
+    #         r'\setmainfont[Extension=.otf]{FiraSans-Light}',
+    #         r'\setsansfont[Extension=.otf]{FiraSans-Light}',
+        ]
+    }
+    mpl.rcParams.update(pgf_with_custom_preamble)
+
     if only_overlap:
         mdata = mdata[np.all(~np.isnan(mdata[raters]), axis=1)]
     # Swap raters 2 and 3
@@ -256,7 +263,7 @@ def raters_variability_plot(mdata, figsize=(22, 22), width=101, out_file=None,
 
         text_x = .92
         text_y = .5 - 0.17 * i
-        newax.text(text_x - .36, text_y, '%2.1f%%' % good,
+        newax.text(text_x - .37, text_y, '%2.1f%%' % good,
                    color='limegreen', weight=1000, size=25,
                    horizontalalignment='right',
                    verticalalignment='center',
@@ -266,14 +273,23 @@ def raters_variability_plot(mdata, figsize=(22, 22), width=101, out_file=None,
                    horizontalalignment='right',
                    verticalalignment='center',
                    transform=newax.transAxes)
-        newax.text(text_x, text_y, '%2.1f%%' % bad,
+        newax.text(text_x + 0.02, text_y, '%2.1f%%' % bad,
                    color='tomato', weight=1000, size=25,
                    horizontalalignment='right',
                    verticalalignment='center',
                    transform=newax.transAxes)
 
-        newax.text(1 - text_x, text_y, rater_names[i],
+        newax.add_patch(
+            RegularPolygon([text_x - 0.62, text_y], (i + 2) * 2,
+                           radius=.06, color='lightgray')
+        )
+        newax.text(1 - text_x, text_y, 'Rater',
                    color='k', size=25,
+                   horizontalalignment='left',
+                   verticalalignment='center',
+                   transform=newax.transAxes)
+        newax.text(text_x - 0.6365, text_y, '\\textbf{%d}' % (i + 1),
+                   color='w', size=25,
                    horizontalalignment='left',
                    verticalalignment='center',
                    transform=newax.transAxes)
@@ -531,8 +547,6 @@ def plot_histograms(X, Y, rating_label='rater_1', out_file=None):
 
 def inter_rater_variability(y1, y2, figsize=(4, 4), normed=True,
                             raters=None, labels=None, out_file=None):
-    plt.rcParams["font.family"] = "sans-serif"
-    plt.rcParams["font.sans-serif"] = "FreeSans"
     plt.rcParams['font.size'] = 25
     plt.rcParams['axes.labelsize'] = 20
     plt.rcParams['axes.titlesize'] = 25
