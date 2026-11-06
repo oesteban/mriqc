@@ -21,6 +21,8 @@ Commits on this branch:
 | **B** | `0e9ba6fe` | A + #1474 |
 | head | (this file) | B + this handover and `validation/` |
 
+#1438 has since been rebased onto master with #1474 (head `b97579d1`). Its tree is identical to **B**, so run B tests the PR as it now stands.
+
 `validation/harmonize_report.py` and `validation/compare_iqms.py` were tested on synthetic data. With a sparse mask, A's `Harmonize` gives `wm_eroded=0` and `out_nan_fraction=1.0`, and B's gives `0.0`.
 
 ## Goals
