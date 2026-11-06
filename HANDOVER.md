@@ -44,7 +44,7 @@ Run everything from the root of the clone, with this branch checked out.
 ### 0. Setup
 
 ```bash
-git log --oneline -4   # expect: this handover, 0e9ba6fe (B), b0c4478b (A), ...
+git log --oneline -5   # expect: the handover's docs commits, then 0e9ba6fe (B), b0c4478b (A)
 export DATA=$HOME/flair-validation
 mkdir -p "$DATA"
 ```
